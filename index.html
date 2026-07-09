@@ -1,84 +1,176 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-192.png">
-<meta name="theme-color" content="#0d1117">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>年·月 规划 · 深色紧凑</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>每日规划 · 深色/浅色</title>
     <style>
+        /* ===== CSS Variables (主题) ===== */
+        :root {
+            --bg-app: #f5f7fb;
+            --bg-panel: #ffffff;
+            --bg-cell: #f8faff;
+            --bg-cell-hover: #edf3fd;
+            --bg-cell-selected: #d0e0ff;
+            --bg-cell-today: #e0ebff;
+            --border-color: #e9eef6;
+            --text-primary: #0b1a33;
+            --text-secondary: #4a5f7e;
+            --text-muted: #7b8fa8;
+            --shadow: 0 20px 40px rgba(0, 10, 30, 0.08);
+            --accent: #3b7bc9;
+            --accent-bg: rgba(59, 123, 201, 0.12);
+            --input-bg: #ffffff;
+            --task-bg: #ffffff;
+            --task-border: #e4ebf5;
+            --task-hover: #f9fcff;
+            --delete-hover: #ffe9ec;
+            --delete-color: #c73b4b;
+            --scrollbar: #cdd9ed;
+        }
+
+        [data-theme="dark"] {
+            --bg-app: #0d1117;
+            --bg-panel: #161b22;
+            --bg-cell: #21262d;
+            --bg-cell-hover: #2d333b;
+            --bg-cell-selected: #1f2a3a;
+            --bg-cell-today: #2d3b4f;
+            --border-color: #30363d;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --text-muted: #6e7681;
+            --shadow: 0 16px 40px rgba(0,0,0,0.6);
+            --accent: #58a6ff;
+            --accent-bg: rgba(88,166,255,0.15);
+            --input-bg: #0d1117;
+            --task-bg: #0d1117;
+            --task-border: #30363d;
+            --task-hover: #161b22;
+            --delete-hover: #3d1a1a;
+            --delete-color: #f85149;
+            --scrollbar: #30363d;
+        }
+
+        /* ===== 全局重置 ===== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
+
         body {
-            background: #0d1117;
+            background: var(--bg-app);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            padding: 12px;
+            padding: 8px;
+            transition: background 0.25s ease;
         }
+
         .app {
-            max-width: 900px;
+            max-width: 480px;
             width: 100%;
-            background: #161b22;
+            background: var(--bg-panel);
             border-radius: 28px;
-            box-shadow: 0 16px 40px rgba(0,0,0,0.6);
-            padding: 18px 20px 22px;
-            border: 1px solid #30363d;
-            transition: all 0.2s;
+            box-shadow: var(--shadow);
+            padding: 16px 14px 20px;
+            border: 1px solid var(--border-color);
+            transition: background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
             max-height: 98vh;
             overflow-y: auto;
+            overscroll-behavior: contain;
         }
-        .app::-webkit-scrollbar { width: 4px; }
-        .app::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        .app::-webkit-scrollbar { width: 3px; }
+        .app::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 10px; }
 
-        h1 {
+        /* ===== 顶部栏 ===== */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .app-title {
             font-size: 20px;
             font-weight: 600;
-            color: #e6edf3;
+            color: var(--text-primary);
+            letter-spacing: -0.2px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 12px;
-            letter-spacing: 0.2px;
+            gap: 6px;
         }
+        .app-title small {
+            font-size: 13px;
+            font-weight: 400;
+            color: var(--text-secondary);
+        }
+
+        .right-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 主题切换按钮 */
+        .theme-toggle {
+            background: var(--bg-cell);
+            border: 1px solid var(--border-color);
+            border-radius: 30px;
+            width: 38px;
+            height: 38px;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            color: var(--text-primary);
+            flex-shrink: 0;
+        }
+        .theme-toggle:hover {
+            background: var(--bg-cell-hover);
+            transform: scale(0.95);
+        }
+
+        /* 视图切换 (月/年) */
         .view-switch {
             display: flex;
-            gap: 4px;
-            background: #21262d;
+            gap: 3px;
+            background: var(--bg-cell);
             padding: 3px;
             border-radius: 30px;
+            border: 1px solid var(--border-color);
         }
         .view-btn {
             background: transparent;
             border: none;
-            padding: 5px 16px;
+            padding: 5px 14px;
             border-radius: 24px;
             font-weight: 500;
             font-size: 13px;
-            color: #8b949e;
+            color: var(--text-secondary);
             cursor: pointer;
             transition: 0.15s;
         }
         .view-btn.active {
-            background: #30363d;
-            color: #e6edf3;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            background: var(--bg-panel);
+            color: var(--text-primary);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.06);
         }
-        .view-btn:hover { background: #30363d; color: #e6edf3; }
+        .view-btn:hover { color: var(--text-primary); }
 
+        /* ===== 网格容器 ===== */
         .grid-container {
-            margin: 10px 0 12px;
+            margin: 8px 0 12px;
         }
+
         .grid-header {
             display: flex;
             justify-content: space-between;
@@ -87,90 +179,101 @@
             padding: 0 2px;
         }
         .grid-header .nav-btn {
-            background: #21262d;
-            border: none;
+            background: var(--bg-cell);
+            border: 1px solid var(--border-color);
             border-radius: 30px;
-            width: 30px;
-            height: 30px;
+            width: 32px;
+            height: 32px;
             font-size: 16px;
             cursor: pointer;
-            transition: 0.1s;
-            color: #8b949e;
+            transition: 0.15s;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .grid-header .nav-btn:hover { background: #30363d; color: #e6edf3; }
+        .grid-header .nav-btn:hover {
+            background: var(--bg-cell-hover);
+            transform: scale(0.95);
+        }
         .grid-header .title {
             font-weight: 600;
-            color: #e6edf3;
+            color: var(--text-primary);
             font-size: 16px;
             letter-spacing: 0.2px;
         }
 
-        /* 月/年 网格 - 更紧凑 */
+        /* 月视图网格 (7列) */
         .month-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 4px;
         }
+        /* 年视图网格 (4列) */
         .year-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 6px;
         }
 
+        /* ===== 日期格子 ===== */
         .month-cell, .year-cell {
-            background: #21262d;
+            background: var(--bg-cell);
             border-radius: 14px;
             padding: 8px 2px;
             text-align: center;
             cursor: pointer;
             border: 1px solid transparent;
-            transition: 0.1s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: 0.12s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+            min-height: 56px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         .month-cell:hover, .year-cell:hover {
-            background: #2d333b;
-            border-color: #58a6ff;
+            background: var(--bg-cell-hover);
+            border-color: var(--border-color);
             transform: translateY(-1px);
         }
         .month-cell.selected, .year-cell.selected {
-            background: #1f2a3a;
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 2px rgba(88,166,255,0.25);
+            background: var(--bg-cell-selected);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(59,123,201,0.15);
         }
-        /* 今日高亮 - 深色 */
         .month-cell.today {
-            background: #2d3b4f;
-            border-color: #58a6ff;
-            box-shadow: 0 0 8px rgba(88,166,255,0.15);
+            background: var(--bg-cell-today);
+            border-color: var(--accent);
         }
-        .month-cell.today .month-name { color: #58a6ff; font-weight: 600; }
+        .month-cell.today .month-name {
+            color: var(--accent);
+            font-weight: 600;
+        }
 
         .month-name {
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 500;
-            color: #e6edf3;
+            color: var(--text-primary);
             line-height: 1.3;
         }
         .year-number {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
-            color: #e6edf3;
+            color: var(--text-primary);
         }
-        .month-cell .sub-info, .year-cell .sub-info {
+        .sub-info {
             font-size: 10px;
-            color: #8b949e;
+            color: var(--text-secondary);
             margin-top: 1px;
         }
         .indicator {
             font-size: 9px;
-            margin-top: 3px;
-            color: #58a6ff;
-            background: rgba(88,166,255,0.12);
+            margin-top: 2px;
+            color: var(--accent);
+            background: var(--accent-bg);
             border-radius: 20px;
-            padding: 1px 6px;
+            padding: 1px 8px;
             display: inline-block;
             max-width: 90%;
             white-space: nowrap;
@@ -178,88 +281,108 @@
             text-overflow: ellipsis;
         }
 
-        /* 详情面板 - 深色紧凑 */
+        /* ===== 详情面板 ===== */
         .detail-panel {
-            background: #1c2128;
-            border-radius: 20px;
-            padding: 14px 18px 18px;
-            border: 1px solid #30363d;
+            background: var(--bg-panel);
+            border-radius: 18px;
+            padding: 12px 14px 16px;
+            border: 1px solid var(--border-color);
             margin-top: 8px;
+            transition: background 0.25s ease, border-color 0.25s ease;
         }
+
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 6px;
+            margin-bottom: 8px;
         }
         .panel-title {
-            font-size: 17px;
+            font-size: 16px;
             font-weight: 600;
-            color: #e6edf3;
+            color: var(--text-primary);
         }
-        .panel-title span { font-weight: 400; color: #8b949e; font-size: 14px; margin-left: 6px; }
+        .panel-title span {
+            font-weight: 400;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-left: 4px;
+        }
+
         .task-input-group {
             display: flex;
-            gap: 6px;
+            gap: 5px;
             flex: 1;
-            max-width: 380px;
-            min-width: 160px;
+            min-width: 140px;
+            max-width: 100%;
         }
         .task-input-group input {
             flex: 1;
-            padding: 7px 14px;
-            border: 1px solid #30363d;
+            padding: 7px 12px;
+            border: 1px solid var(--border-color);
             border-radius: 30px;
-            font-size: 13px;
-            background: #0d1117;
-            color: #e6edf3;
+            font-size: 14px;
+            background: var(--input-bg);
+            color: var(--text-primary);
             outline: none;
             transition: 0.15s;
+            min-height: 36px;
         }
+        .task-input-group input::placeholder { color: var(--text-muted); }
         .task-input-group input:focus {
-            border-color: #58a6ff;
-            box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-bg);
         }
-        .task-input-group input::placeholder { color: #6e7681; }
         .task-input-group button {
-            background: #238636;
+            background: var(--accent);
             border: none;
-            color: white;
-            padding: 0 18px;
+            color: #fff;
+            padding: 0 16px;
             border-radius: 30px;
             font-weight: 500;
-            font-size: 13px;
+            font-size: 14px;
             cursor: pointer;
-            transition: 0.1s;
+            transition: 0.12s;
             white-space: nowrap;
+            min-height: 36px;
         }
-        .task-input-group button:hover { background: #2ea043; transform: scale(0.96); }
+        .task-input-group button:hover {
+            transform: scale(0.96);
+            opacity: 0.9;
+        }
 
+        /* 筛选工具栏 */
         .task-toolbar {
             display: flex;
-            gap: 6px;
-            margin: 4px 0 10px;
+            gap: 5px;
+            margin: 4px 0 8px;
             flex-wrap: wrap;
         }
         .filter-btn {
-            background: #21262d;
-            border: none;
+            background: var(--bg-cell);
+            border: 1px solid transparent;
             padding: 3px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            color: #8b949e;
+            color: var(--text-secondary);
             cursor: pointer;
-            transition: 0.1s;
+            transition: 0.12s;
         }
         .filter-btn.active {
-            background: #30363d;
-            color: #e6edf3;
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
         }
-        .filter-btn:hover { background: #30363d; color: #e6edf3; }
+        .filter-btn:hover {
+            background: var(--bg-cell-hover);
+            border-color: var(--border-color);
+        }
+        .filter-btn.active:hover { opacity: 0.9; }
 
+        /* 任务列表 */
         .task-list {
             display: flex;
             flex-direction: column;
@@ -269,20 +392,25 @@
             overflow-y: auto;
         }
         .task-list::-webkit-scrollbar { width: 3px; }
-        .task-list::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+        .task-list::-webkit-scrollbar-thumb { background: var(--scrollbar); border-radius: 10px; }
 
         .task-item {
-            background: #0d1117;
-            padding: 6px 12px 6px 14px;
+            background: var(--task-bg);
+            padding: 6px 10px 6px 12px;
             border-radius: 30px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            border: 1px solid #30363d;
+            border: 1px solid var(--task-border);
             transition: 0.1s;
-            gap: 6px;
+            gap: 4px;
+            min-height: 38px;
         }
-        .task-item:hover { background: #161b22; border-color: #58a6ff; }
+        .task-item:hover {
+            background: var(--task-hover);
+            border-color: var(--accent);
+        }
+
         .task-left {
             display: flex;
             align-items: center;
@@ -291,10 +419,10 @@
             min-width: 0;
         }
         .task-check {
-            width: 17px;
-            height: 17px;
+            width: 18px;
+            height: 18px;
             border-radius: 30px;
-            border: 2px solid #6e7681;
+            border: 2px solid var(--text-muted);
             background: transparent;
             display: flex;
             align-items: center;
@@ -306,68 +434,124 @@
             font-size: 11px;
         }
         .task-check.done {
-            background: #238636;
-            border-color: #238636;
-            color: white;
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
         }
         .task-check.done::after { content: "✓"; }
+
         .task-text {
             font-size: 14px;
-            color: #e6edf3;
+            color: var(--text-primary);
             word-break: break-word;
             flex: 1;
         }
-        .task-text.done-text { text-decoration: line-through; color: #6e7681; }
+        .task-text.done-text {
+            text-decoration: line-through;
+            color: var(--text-muted);
+        }
+
         .task-actions {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 2px;
             flex-shrink: 0;
         }
         .delete-btn {
             background: none;
             border: none;
-            color: #6e7681;
+            color: var(--text-muted);
             font-size: 16px;
             cursor: pointer;
-            padding: 0 2px;
+            padding: 0 4px;
             border-radius: 30px;
-            width: 26px;
-            height: 26px;
+            width: 28px;
+            height: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
+            transition: 0.1s;
         }
-        .delete-btn:hover { background: #3d1a1a; color: #f85149; }
-        .empty-tasks { color: #6e7681; font-size: 13px; padding: 12px 6px 6px; text-align: center; }
-        .footer-tip { margin-top: 10px; font-size: 11px; color: #484f58; text-align: right; border-top: 1px solid #21262d; padding-top: 10px; }
+        .delete-btn:hover {
+            background: var(--delete-hover);
+            color: var(--delete-color);
+        }
 
-        @media (max-width: 600px) {
-            .app { padding: 12px; }
-            .month-cell, .year-cell { padding: 6px 2px; }
-            .month-name { font-size: 13px; }
-            .year-number { font-size: 14px; }
-            .detail-panel { padding: 12px; }
-            .task-input-group { max-width: 100%; }
+        .empty-tasks {
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 10px 4px 4px;
+            text-align: center;
+        }
+        .footer-tip {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+            opacity: 0.7;
+        }
+
+        /* ===== 移动端适配 ===== */
+        @media (max-width: 420px) {
+            .app { padding: 10px 8px 14px; border-radius: 20px; }
+            .app-title { font-size: 17px; }
+            .app-title small { font-size: 11px; }
+            .view-btn { font-size: 12px; padding: 4px 10px; }
+            .theme-toggle { width: 34px; height: 34px; font-size: 16px; }
+            .month-cell, .year-cell { padding: 6px 2px; min-height: 44px; }
+            .month-name { font-size: 14px; }
+            .year-number { font-size: 13px; }
             .panel-title { font-size: 15px; }
-            .grid-header .title { font-size: 14px; }
+            .task-input-group input { font-size: 13px; padding: 5px 10px; min-height: 32px; }
+            .task-input-group button { font-size: 13px; padding: 0 12px; min-height: 32px; }
+            .detail-panel { padding: 10px 10px 12px; }
+            .task-item { padding: 4px 8px 4px 10px; min-height: 34px; }
+            .task-text { font-size: 13px; }
+            .task-check { width: 16px; height: 16px; font-size: 10px; }
+        }
+
+        @media (max-width: 360px) {
+            .month-grid { gap: 2px; }
+            .month-cell { padding: 4px 0; min-height: 38px; }
+            .month-name { font-size: 12px; }
+            .sub-info { font-size: 8px; }
+            .indicator { font-size: 8px; padding: 0 4px; }
+            .task-toolbar .filter-btn { font-size: 11px; padding: 2px 8px; }
+        }
+
+        /* 防止点击input时页面滚动 */
+        .task-input-group input:focus {
+            outline: none;
+        }
+        /* 点击cell不触发input聚焦 */
+        .no-focus-trigger {
+            user-select: none;
         }
     </style>
 </head>
 <body>
-<div class="app" id="app">
-    <h1>
-        📅 规划 · 深色
-        <div class="view-switch">
-            <button class="view-btn active" data-view="month">月</button>
-            <button class="view-btn" data-view="year">年</button>
+<div class="app" id="app" data-theme="dark">
+    <!-- 顶部栏 -->
+    <div class="top-bar">
+        <div class="app-title">
+            📅 规划
+            <small>月/年</small>
         </div>
-    </h1>
-
-    <div class="grid-container" id="gridContainer">
-        <!-- 动态渲染 -->
+        <div class="right-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="切换主题">🌙</button>
+            <div class="view-switch">
+                <button class="view-btn active" data-view="month">月</button>
+                <button class="view-btn" data-view="year">年</button>
+            </div>
+        </div>
     </div>
 
+    <!-- 网格 -->
+    <div class="grid-container" id="gridContainer"></div>
+
+    <!-- 详情面板 -->
     <div class="detail-panel" id="detailPanel">
         <div class="panel-header">
             <div class="panel-title" id="panelTitle">
@@ -375,7 +559,7 @@
                 <span id="entityDate">2026-07</span>
             </div>
             <div class="task-input-group">
-                <input type="text" id="taskInput" placeholder="添加规划..." maxlength="60">
+                <input type="text" id="taskInput" placeholder="添加任务..." maxlength="60">
                 <button id="addTaskBtn">+</button>
             </div>
         </div>
@@ -387,7 +571,7 @@
         </div>
 
         <div class="task-list" id="taskList">
-            <div class="empty-tasks">✨ 点击月份/年份 查看规划</div>
+            <div class="empty-tasks">✨ 点击日期查看规划</div>
         </div>
         <div class="footer-tip">点击日期 · 任务可标记完成</div>
     </div>
@@ -397,7 +581,7 @@
     (function() {
         "use strict";
 
-        // ----- 数据 -----
+        // ===== 数据 =====
         let tasksData = {};
         const todayStr = getTodayStr();
         const currentYear = parseInt(todayStr.split('-')[0], 10);
@@ -409,7 +593,11 @@
         let viewMonth = currentMonth;
         let currentFilter = 'all';
 
+        // 主题: 'dark' 或 'light'
+        let currentTheme = 'dark';
+
         // DOM
+        const appEl = document.getElementById('app');
         const gridContainer = document.getElementById('gridContainer');
         const panelTitle = document.getElementById('panelTitle');
         const entityLabel = document.getElementById('entityLabel');
@@ -419,8 +607,9 @@
         const addBtn = document.getElementById('addTaskBtn');
         const viewBtns = document.querySelectorAll('.view-btn');
         const filterBtns = document.querySelectorAll('.filter-btn');
+        const themeToggle = document.getElementById('themeToggle');
 
-        // ----- 工具 -----
+        // ===== 工具 =====
         function getTodayStr() {
             const d = new Date();
             return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -458,11 +647,11 @@
 
         function loadTasks() {
             try {
-                const s = localStorage.getItem('planning_tasks_v3');
+                const s = localStorage.getItem('planning_tasks_v4');
                 if (s) { tasksData = JSON.parse(s); if (typeof tasksData !== 'object' || Array.isArray(tasksData)) tasksData = {}; }
             } catch (_) { tasksData = {}; }
         }
-        function saveTasks() { localStorage.setItem('planning_tasks_v3', JSON.stringify(tasksData)); }
+        function saveTasks() { localStorage.setItem('planning_tasks_v4', JSON.stringify(tasksData)); }
 
         function getTaskStats(key) {
             const tasks = getTasks(key);
@@ -471,14 +660,37 @@
             return { total, done };
         }
 
-        // ----- 渲染视图 -----
+        // ===== 主题切换 =====
+        function setTheme(theme) {
+            currentTheme = theme;
+            appEl.setAttribute('data-theme', theme);
+            themeToggle.textContent = theme === 'dark' ? '🌙' : '☀️';
+            localStorage.setItem('planning_theme', theme);
+        }
+
+        function toggleTheme() {
+            const next = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(next);
+        }
+
+        function loadTheme() {
+            const saved = localStorage.getItem('planning_theme');
+            if (saved === 'light' || saved === 'dark') {
+                setTheme(saved);
+            } else {
+                // 默认深色
+                setTheme('dark');
+            }
+        }
+
+        // ===== 渲染视图 =====
         function renderView() {
             if (currentView === 'month') renderMonthView();
             else if (currentView === 'year') renderYearView();
             updateDetailPanel();
         }
 
-        // 月视图 - 显示所有日期 (紧凑)
+        // 月视图
         function renderMonthView() {
             const year = viewYear, month = viewMonth;
             const days = new Date(year, month, 0).getDate();
@@ -574,7 +786,7 @@
             });
         }
 
-        // ----- 更新详情 -----
+        // ===== 更新详情面板 =====
         function updateDetailPanel() {
             const tasks = getTasks(selectedKey);
             const label = selectedKey.includes('-') ? (selectedKey.split('-').length === 3 ? '日' : '月') : '年';
@@ -633,11 +845,10 @@
                     taskListEl.appendChild(item);
                 });
             }
-            taskInput.value = '';
-            taskInput.focus();
+            // 不再自动聚焦输入框，避免弹出键盘
         }
 
-        // ----- 切换视图 -----
+        // ===== 切换视图 =====
         function switchView(view) {
             currentView = view;
             viewBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
@@ -651,27 +862,32 @@
             renderView();
         }
 
+        // ===== 添加任务 =====
         function handleAddTask() {
             const text = taskInput.value.trim();
             if (!text) {
                 taskInput.style.borderColor = '#f85149';
-                setTimeout(() => taskInput.style.borderColor = '#30363d', 400);
+                setTimeout(() => taskInput.style.borderColor = '', 400);
                 return;
             }
             addTask(selectedKey, text);
             updateDetailPanel();
             renderView();
+            taskInput.value = '';
         }
 
+        // ===== 筛选 =====
         function setFilter(filter) {
             currentFilter = filter;
             filterBtns.forEach(btn => btn.classList.toggle('active', btn.dataset.filter === filter));
             updateDetailPanel();
         }
 
-        // ----- 初始化 -----
+        // ===== 初始化 =====
         function init() {
             loadTasks();
+            loadTheme();
+
             selectedKey = `${currentYear}-${String(currentMonth).padStart(2,'0')}`;
             viewYear = currentYear;
             viewMonth = currentMonth;
@@ -698,6 +914,8 @@
             taskInput.addEventListener('keydown', function(e) {
                 if (e.key === 'Enter') { e.preventDefault(); handleAddTask(); }
             });
+
+            themeToggle.addEventListener('click', toggleTheme);
 
             renderView();
         }
